@@ -50,15 +50,15 @@ for epoch in range(num_epochs):
 
     # 結果の保存
     input_data = [epoch + 1, process_time, avg_train_loss, avg_train_acc, avg_val_loss, avg_val_acc]
-    result_save('./result/original_train_parameter_epoch50.csv', data_dict, input_data)
+    result_save('./result/csv/original_train_parameter_epoch50.csv', data_dict, input_data)
 
 # パラメータの保存
-parameter_save('./result/original_train_epoch50.pkl', net)
+parameter_save('./result/pkl/original_train_epoch50.pkl', net)
 
 # 勾配の保存
 conv_list = [module for module in net.modules() if isinstance(module, nn.Conv2d)]
 dense_list = [module for module in net.modules() if isinstance(module, nn.Linear)]
 for i, conv in enumerate(conv_list):
-    parameter_save(f'./result/original_train_grad_conv{i}.pkl', conv.weight.grad)
+    parameter_save(f'./result/pkl/original_train_grad_conv{i}.pkl', conv.weight.grad)
 for i, dense in enumerate(dense_list):
-    parameter_save(f'./result/original_train_grad_dense{i}.pkl', dense.weight.grad)
+    parameter_save(f'./result/pkl/original_train_grad_dense{i}.pkl', dense.weight.grad)
