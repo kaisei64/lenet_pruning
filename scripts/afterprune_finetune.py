@@ -17,7 +17,7 @@ original_net = parameter_use('./result/pkl/original_train_epoch50.pkl')
 # 枝刈り前畳み込み層のリスト
 original_conv_list = [module for module in original_net.modules() if isinstance(module, nn.Conv2d)]
 # 枝刈り後パラメータ利用
-new_net = parameter_use('./result/pkl/dense_conv_prune_dense90per_conv80per.pkl')
+new_net = parameter_use('./result/pkl/dense_conv_prune_dense90per_conv99per.pkl')
 # 枝刈り後畳み込み層・全結合層・係数パラメータのリスト
 conv_list = [module for module in new_net.modules() if isinstance(module, nn.Conv2d)]
 dense_list = [module for module in new_net.modules() if isinstance(module, nn.Linear)]
@@ -79,4 +79,4 @@ for epoch in range(f_num_epochs):
 
     # 結果の保存
     input_data = [avg_val_loss, avg_val_acc]
-    result_save('./result/pkl/result_dense_retrain_dense90per_conv80per.csv', data_dict, input_data)
+    result_save('./result/csv/result_dense_retrain_dense90per_conv99per.csv', data_dict, input_data)
