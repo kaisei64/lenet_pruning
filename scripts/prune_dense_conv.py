@@ -27,12 +27,10 @@ optimizer = optim.SGD(new_net.parameters(), lr=0.01, momentum=0.9, weight_decay=
 # マスクのオブジェクト
 ch_mask = [ChannelMaskGenerator() for _ in range(conv_count)]
 inv_prune_ratio = 10
-flag = [0 for i in range(3)]
 
 # channel_pruning
 for count in range(1, inv_prune_ratio + 9):
     print(f'\nchannel pruning: {count}')
-    parameter_save('./result/pkl/middle_prune.pkl', new_net)
     # ノルムの合計を保持
     channel_l1norm_for_each_layer = [list() for _ in range(conv_count)]
 
@@ -44,9 +42,9 @@ for count in range(1, inv_prune_ratio + 9):
     # 枝刈り本体
     with torch.no_grad():
         for i in range(len(conv_list)):
-            threshold = channel_l1norm_for_each_layer[i][int(conv_list[i].out_channels / inv_prune_ratio * count) - 1]\
+            threshold = channel_l1norm_for_each_layer[i][int(conv_list[i].out_channels / inv_prune_ratio * count)]\
                 if count <= 9 else channel_l1norm_for_each_layer[i][int(conv_list[i].out_channels *
-                                                        (9 / inv_prune_ratio + (count - 9) / inv_prune_ratio ** 2)) - 1]
+                                                        (9 / inv_prune_ratio + (count - 9) / inv_prune_ratio ** 2))]
             save_mask = ch_mask[i].generate_mask(conv_list[i].weight.data.clone(),
                                                  None if i == 0 else conv_list[i - 1].weight.data.clone(), threshold)
             conv_list[i].weight.data *= torch.tensor(save_mask, device=device, dtype=dtype)
@@ -64,7 +62,7 @@ for count in range(1, inv_prune_ratio + 9):
         print(f'channel_number{i + 1}: {channel_num_new[i]}', end=", " if i != conv_count - 1 else "\n")
 
     accuracy = 0
-    f_num_epochs = 5
+    f_num_epochs = 10
     # finetune
     start = time.time()
     for epoch in range(f_num_epochs):
@@ -107,24 +105,18 @@ for count in range(1, inv_prune_ratio + 9):
         result_save('./result/csv/dense_conv_prune_parameter_dense90per.csv', data_dict, input_data)
 
     # パラメータの保存
-    if accuracy < 0.56 and flag[0] != 1:
-        new_net_save = parameter_use('./result/pkl/middle_prune.pkl')
-        parameter_save('./result/pkl/dense_conv_prune_dense90per_60per.pkl', new_net_save)
-        parameter_save('./result/pkl/dense_conv_prune_dense90per_60per_copy.pkl', new_net_save)
-        flag[0] = 1
-    elif accuracy < 0.36 and flag[1] != 1:
-        new_net_save = parameter_use('./result/pkl/middle_prune_.pkl')
-        parameter_save('./result/pkl/dense_conv_prune_dense90per_40per.pkl', new_net_save)
-        parameter_save('./result/pkl/dense_conv_prune_dense90per_40per_copy.pkl', new_net_save)
-        flag[1] = 1
-    elif accuracy < 0.16 and flag[2] != 1:
-        new_net_save = parameter_use('./result/pkl/middle_prune.pkl')
-        parameter_save('./result/pkl/dense_conv_prune_dense90per_20per.pkl', new_net_save)
-        parameter_save('./result/pkl/dense_conv_prune_dense90per_20per_copy.pkl', new_net_save)
-        flag[2] = 1
-    elif accuracy < 0.11:
-        parameter_save('./result/pkl/dense_conv_prune_dense90per_10per.pkl', new_net)
-        parameter_save('./result/pkl/dense_conv_prune_dense90per_10per_copy.pkl', new_net)
+    if count == 8:
+        parameter_save('./result/pkl/dense_conv_prune_dense90per_conv80per.pkl', new_net)
+        parameter_save('./result/pkl/dense_conv_prune_dense90per_conv80per_copy.pkl', new_net)
+    elif count == 9:
+        parameter_save('./result/pkl/dense_conv_prune_dense90per_conv90per.pkl', new_net)
+        parameter_save('./result/pkl/dense_conv_prune_dense90per_conv90per_copy.pkl', new_net)
+    elif count == 14:
+        parameter_save('./result/pkl/dense_conv_prune_dense90per_conv95per.pkl', new_net)
+        parameter_save('./result/pkl/dense_conv_prune_dense90per_conv95per_copy.pkl', new_net)
+    elif count == 18:
+        parameter_save('./result/pkl/dense_conv_prune_dense90per_conv99per.pkl', new_net)
+        parameter_save('./result/pkl/dense_conv_prune_dense90per_conv99per_copy.pkl', new_net)
         break
     else:
         pass
