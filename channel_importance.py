@@ -4,13 +4,13 @@ import numpy as np
 from result_save_visualization import *
 
 # パラメータ利用
-net = parameter_use('./result/pkl/original_train_epoch50.pkl')
+net = parameter_use('./result/pkl1/original_train_epoch50.pkl')
 # 畳み込み層のリスト
 conv_list = [module for module in net.modules() if isinstance(module, nn.Conv2d)]
 # 勾配のリスト
 grad_list = list()
 for i, conv in enumerate(conv_list):
-    grad_list.append(parameter_use(f'./result/pkl/original_train_grad_conv{i}.pkl'))
+    grad_list.append(parameter_use(f'./result/pkl1/original_train_grad_conv{i}.pkl'))
 
 
 def channel_importance(conv_num):

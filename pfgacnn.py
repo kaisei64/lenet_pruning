@@ -6,7 +6,7 @@ from channel_importance import channel_importance
 from result_save_visualization import *
 
 # パラメータ利用
-net = parameter_use('./result/pkl/original_train_epoch50.pkl')
+net = parameter_use('./result/pkl1/original_train_epoch50.pkl')
 # 畳み込み層のリスト
 conv_list = [module for module in net.modules() if isinstance(module, nn.Conv2d)]
 
