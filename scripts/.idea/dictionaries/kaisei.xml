@@ -2,6 +2,7 @@
   <dictionary name="kaisei">
     <words>
       <w>conv</w>
+      <w>finetune</w>
       <w>optim</w>
     </words>
   </dictionary>

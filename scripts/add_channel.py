@@ -5,8 +5,8 @@ sys.path.append(pardir)
 from channel_mask_generator import ChannelMaskGenerator
 from dense_mask_generator import DenseMaskGenerator
 from dataset import *
-from pfgacnn_mymodel import PfgaCnn
-from cnn_evaluateprune_mymodel import CnnEvaluatePrune
+from pfgacnn import PfgaCnn
+from cnn_evaluateprune import CnnEvaluatePrune
 from result_save_visualization import *
 import torch
 import torch.nn as nn
@@ -148,6 +148,6 @@ for count in range(add_channel_num):
 
         # 結果の保存
         input_data = [before_avg_val_loss, before_avg_val_acc, avg_val_loss, avg_val_acc]
-        result_save('./result/csv/result_add_channels_retrain.csv', data_dict, input_data)
+        result_save('./result/csv/result_add_channels_retrain_dense90per_10per.csv', data_dict, input_data)
         # パラメータの保存
         parameter_save('./result/pkl/dense_conv_prune_dense90per_10per.pkl', new_net)
