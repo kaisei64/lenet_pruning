@@ -14,7 +14,7 @@ import time
 data_dict = {'epoch': [], 'time': [], 'train_loss': [], 'train_acc': [], 'val_loss': [], 'val_acc': []}
 
 # パラメータ利用, 全結合パラメータの凍結
-new_net = parameter_use('./result/original_train_epoch50.pkl')
+new_net = parameter_use('./result/pkl/original_train_epoch50.pkl')
 # 全結合層、畳み込み層のリスト
 dense_list = [module for module in new_net.modules() if isinstance(module, nn.Linear)]
 dense_count = len(dense_list)
@@ -30,6 +30,8 @@ inv_prune_ratio = 10
 
 # weight_pruning
 for count in range(1, inv_prune_ratio + 9):
+    if count > 19:
+        break
     print(f'\nweight pruning: {count}')
     # 全結合層を可視化
     # if count == 1 or count == 10 or count == 18:
@@ -75,8 +77,6 @@ for count in range(1, inv_prune_ratio + 9):
               end=", " if i != dense_count - 1 else "\n" if i != dense_count - 1 else "\n")
 
     accuracy = 0
-    if count >= 9:
-        parameter_save('./result/middle_prune.pkl', new_net)
     f_num_epochs = 5
     # finetune
     start = time.time()
@@ -117,11 +117,7 @@ for count in range(1, inv_prune_ratio + 9):
 
         # 結果の保存
         input_data = [epoch + 1, process_time, avg_train_loss, avg_train_acc, avg_val_loss, avg_val_acc]
-        result_save('./result/de_prune_parameter_90per.csv', data_dict, input_data)
-
-    if accuracy < 0.85:
-        new_net = parameter_use('./result/middle_prune.pkl')
-        break
+        result_save('./result/csv/de_prune_parameter_99per.csv', data_dict, input_data)
 
 # パラメータの保存
-parameter_save('./result/dense_prune_90per.pkl', new_net)
+parameter_save('./result/pkl/dense_prune_99per.pkl', new_net)
