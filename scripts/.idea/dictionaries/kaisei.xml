@@ -1,13 +1,8 @@
 <component name="ProjectDictionaryState">
   <dictionary name="kaisei">
     <words>
-      <w>coef</w>
       <w>conv</w>
-      <w>cuda</w>
-      <w>darkgrid</w>
-      <w>dataset</w>
-      <w>dtype</w>
-      <w>mydraw</w>
+      <w>optim</w>
     </words>
   </dictionary>
 </component>
