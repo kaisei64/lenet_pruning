@@ -1,7 +1,7 @@
 from channel_mask_generator import ChannelMaskGenerator
 from dataset import *
 from result_save_visualization import *
-from channel_importance_mymodel import channel_euclidean_distance, cos_sim
+from channel_importance import channel_euclidean_distance, cos_sim
 import torch
 import numpy as np
 
