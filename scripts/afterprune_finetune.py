@@ -36,8 +36,6 @@ for param in new_net.parameters():
     param.requires_grad = False
 for dense in dense_list:
     dense.weight.requires_grad = True
-for param in param_list:
-    param.requires_grad = True
 
 f_num_epochs = 5
 for epoch in range(f_num_epochs):
@@ -47,7 +45,7 @@ for epoch in range(f_num_epochs):
     for _, (images, labels) in enumerate(train_loader):
         images, labels = images.to(device), labels.to(device)
         optimizer.zero_grad()
-        outputs = new_net(images, True)
+        outputs = new_net(images, False)
         loss = criterion(outputs, labels)
         train_loss += loss.item()
         train_acc += (outputs.max(1)[1] == labels).sum().item()
@@ -69,7 +67,7 @@ for epoch in range(f_num_epochs):
     with torch.no_grad():
         for images, labels in test_loader:
             labels = labels.to(device)
-            outputs = new_net(images.to(device), True)
+            outputs = new_net(images.to(device), False)
             loss = criterion(outputs, labels)
             val_loss += loss.item()
             val_acc += (outputs.max(1)[1] == labels).sum().item()
