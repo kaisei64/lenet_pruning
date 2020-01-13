@@ -1,7 +1,7 @@
 import cloudpickle
 import pandas as pd
 import seaborn as sns
-from draw_architecture import mydraw
+# from draw_architecture import mydraw
 
 
 def result_save(path, data_dict, input_data):
@@ -37,5 +37,5 @@ def conv_vis(path, param, fl_num, ch_num=0):
 
 
 # 入力はパラメータのリスト
-def dense_vis(param_list):
-    mydraw(param_list)
+# def dense_vis(param_list):
+#     mydraw(param_list)
