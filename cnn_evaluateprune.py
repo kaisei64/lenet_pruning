@@ -7,10 +7,12 @@ import numpy as np
 
 data_dict = {'attribute': [], 'epoch': [], 'train_loss': [], 'train_acc': [], 'val_loss': [], 'val_acc': []}
 dense_per = 90
-conv_per = 90
+conv_per = 80
+csv = 1
+pkl = 1
 
 # 枝刈り前パラメータ利用
-original_net = parameter_use('./result/pkl/original_train_epoch50.pkl')
+original_net = parameter_use(f'./result/pkl{pkl}/original_train_epoch50.pkl')
 # 畳み込み層のリスト
 original_conv_list = [module for module in original_net.modules() if isinstance(module, nn.Conv2d)]
 
@@ -25,7 +27,7 @@ class CnnEvaluatePrune:
 
     def train(self, gene, g_count, conv_num):
         # 枝刈り後パラメータ利用
-        self.network = parameter_use(f'./result/pkl/dense_conv_prune_dense{dense_per}per_conv{conv_per}per.pkl')
+        self.network = parameter_use(f'./result/pkl{pkl}/dense_conv_prune_dense{dense_per}per_conv{conv_per}per.pkl')
 
         # 畳み込み層のリスト
         conv_list = [module for module in self.network.modules() if isinstance(module, nn.Conv2d)]
@@ -93,7 +95,7 @@ class CnnEvaluatePrune:
 
             # 結果の保存
             input_data = [g_count, epoch + 1, avg_train_loss, avg_train_acc, avg_val_loss, avg_val_acc]
-            result_save(f'./result/csv/add_channels_train_dense{dense_per}per_conv{conv_per}per.csv', data_dict, input_data)
+            result_save(f'./result/csv{csv}/add_channels_train_dense{dense_per}per_conv{conv_per}per.csv', data_dict, input_data)
 
-        return 10000 * eva + similarity
+        return 1000 * eva + similarity
         # return eva
