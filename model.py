@@ -2,10 +2,10 @@ import torch.nn.functional as F
 from dataset import *
 
 
-class Net(nn.Module):
+class LeNet(nn.Module):
 
     def __init__(self):
-        super(Net, self).__init__()
+        super(LeNet, self).__init__()
         self.conv1 = nn.Conv2d(1, 6, kernel_size=3)
         self.conv2 = nn.Conv2d(6, 16, kernel_size=3)
         self.conv1_coef = nn.Parameter(torch.randn(64, device=device, dtype=dtype))
@@ -26,10 +26,3 @@ class Net(nn.Module):
         x = F.relu(self.fc2(x))
         x = self.fc3(x)
         return x
-
-    def num_flat_features(self, x):
-        size = x.size()[1:]
-        num_features = 1
-        for s in size:
-            num_features *= s
-        return num_features
