@@ -3,6 +3,7 @@ import sys
 pardir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(pardir)
 from channel_mask_generator import ChannelMaskGenerator
+from dense_mask_generator import DenseMaskGenerator
 from dataset import *
 from result_save_visualization import *
 import torch
@@ -14,7 +15,7 @@ import time
 data_dict = {'epoch': [], 'time': [], 'train_loss': [], 'train_acc': [], 'val_loss': [], 'val_acc': []}
 
 # パラメータ利用, 全結合パラメータの凍結
-new_net = parameter_use('./result/pkl/dense_prune_90per.pkl')
+new_net = parameter_use('./result2/pkl1/dense_prune_90per.pkl')
 # 全結合層、畳み込み層のリスト
 dense_list = [module for module in new_net.modules() if isinstance(module, nn.Linear)]
 conv_list = [module for module in new_net.modules() if isinstance(module, nn.Conv2d)]
@@ -26,6 +27,9 @@ optimizer = optim.SGD(new_net.parameters(), lr=0.01, momentum=0.9, weight_decay=
 
 # マスクのオブジェクト
 ch_mask = [ChannelMaskGenerator() for _ in range(conv_count)]
+de_mask = [DenseMaskGenerator() for _ in dense_list]
+for i, dense in enumerate(dense_list):
+    de_mask[i].mask = np.where(np.abs(dense.weight.data.clone().cpu().detach().numpy()) == 0, 0, 1)
 inv_prune_ratio = 10
 
 # channel_pruning
@@ -81,6 +85,8 @@ for count in range(1, inv_prune_ratio + 9):
             with torch.no_grad():
                 for j, conv in enumerate(conv_list):
                     conv.weight.data *= torch.tensor(ch_mask[j].mask, device=device, dtype=dtype)
+                for k, dense in enumerate(dense_list):
+                    dense.weight.data *= torch.tensor(de_mask[k].mask, device=device, dtype=dtype)
         avg_train_loss, avg_train_acc = train_loss / len(train_loader.dataset), train_acc / len(train_loader.dataset)
 
         # val
@@ -102,21 +108,18 @@ for count in range(1, inv_prune_ratio + 9):
 
         # 結果の保存
         input_data = [epoch + 1, process_time, avg_train_loss, avg_train_acc, avg_val_loss, avg_val_acc]
-        result_save('./result/csv/dense_conv_prune_parameter_dense90per.csv', data_dict, input_data)
+        result_save('./result2/csv1/dense_conv_prune_parameter_dense90per.csv', data_dict, input_data)
 
     # パラメータの保存
     if count == 8:
-        parameter_save('./result/pkl/dense_conv_prune_dense90per_conv80per.pkl', new_net)
-        parameter_save('./result/pkl/dense_conv_prune_dense90per_conv80per_copy.pkl', new_net)
+        parameter_save('./result2/pkl1/dense_conv_prune_dense90per_conv80per.pkl', new_net)
+        parameter_save('./result2/pkl1/dense_conv_prune_dense90per_conv80per_copy.pkl', new_net)
     elif count == 9:
-        parameter_save('./result/pkl/dense_conv_prune_dense90per_conv90per.pkl', new_net)
-        parameter_save('./result/pkl/dense_conv_prune_dense90per_conv90per_copy.pkl', new_net)
+        parameter_save('./result2/pkl1/dense_conv_prune_dense90per_conv90per.pkl', new_net)
+        parameter_save('./result2/pkl1/dense_conv_prune_dense90per_conv90per_copy.pkl', new_net)
     elif count == 14:
-        parameter_save('./result/pkl/dense_conv_prune_dense90per_conv95per.pkl', new_net)
-        parameter_save('./result/pkl/dense_conv_prune_dense90per_conv95per_copy.pkl', new_net)
-    elif count == 18:
-        parameter_save('./result/pkl/dense_conv_prune_dense90per_conv99per.pkl', new_net)
-        parameter_save('./result/pkl/dense_conv_prune_dense90per_conv99per_copy.pkl', new_net)
+        parameter_save('./result2/pkl1/dense_conv_prune_dense90per_conv95per.pkl', new_net)
+        parameter_save('./result2/pkl1/dense_conv_prune_dense90per_conv95per_copy.pkl', new_net)
         break
     else:
         pass
