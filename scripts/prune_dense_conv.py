@@ -15,7 +15,7 @@ import time
 data_dict = {'epoch': [], 'time': [], 'train_loss': [], 'train_acc': [], 'val_loss': [], 'val_acc': []}
 
 # パラメータ利用, 全結合パラメータの凍結
-new_net = parameter_use('./result2/pkl1/dense_prune_99per.pkl')
+new_net = parameter_use('./result2/pkl1/dense_prune_90per.pkl')
 # 全結合層、畳み込み層のリスト
 dense_list = [module for module in new_net.modules() if isinstance(module, nn.Linear)]
 conv_list = [module for module in new_net.modules() if isinstance(module, nn.Conv2d)]
@@ -108,18 +108,18 @@ for count in range(1, inv_prune_ratio + 9):
 
         # 結果の保存
         input_data = [epoch + 1, process_time, avg_train_loss, avg_train_acc, avg_val_loss, avg_val_acc]
-        result_save('./result2/csv1/dense_conv_prune_parameter_dense99per.csv', data_dict, input_data)
+        result_save('./result2/csv1/dense_conv_prune_parameter_dense90per.csv', data_dict, input_data)
 
     # パラメータの保存
     if count == 8:
-        parameter_save('./result2/pkl1/dense_conv_prune_dense99per_conv80per.pkl', new_net)
-        parameter_save('./result2/pkl1/dense_conv_prune_dense99per_conv80per_copy.pkl', new_net)
+        parameter_save('./result2/pkl1/dense_conv_prune_dense90per_conv60per.pkl', new_net)
+        parameter_save('./result2/pkl1/dense_conv_prune_dense90per_conv60per_copy.pkl', new_net)
     elif count == 9:
-        parameter_save('./result2/pkl1/dense_conv_prune_dense99per_conv90per.pkl', new_net)
-        parameter_save('./result2/pkl1/dense_conv_prune_dense99per_conv90per_copy.pkl', new_net)
+        parameter_save('./result2/pkl1/dense_conv_prune_dense90per_conv80per.pkl', new_net)
+        parameter_save('./result2/pkl1/dense_conv_prune_dense90per_conv80per_copy.pkl', new_net)
     elif count == 14:
-        parameter_save('./result2/pkl1/dense_conv_prune_dense99per_conv95per.pkl', new_net)
-        parameter_save('./result2/pkl1/dense_conv_prune_dense99per_conv95per_copy.pkl', new_net)
+        parameter_save('./result2/pkl1/dense_conv_prune_dense90per_conv95per.pkl', new_net)
+        parameter_save('./result2/pkl1/dense_conv_prune_dense90per_conv95per_copy.pkl', new_net)
         break
     else:
         pass
