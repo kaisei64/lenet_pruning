@@ -33,8 +33,8 @@ class PfgaCnn:
         # チャネル重要度が上位10%の個体を初期個体にする
         ch_high, ch_low = channel_importance(self.conv_num)
         # 選択されるチャネルのindex
-        ch_index = random.choice(np.concatenate([ch_high, ch_low]))
-        # ch_index = random.choice(ch_high10)
+        # ch_index = random.choice(np.concatenate([ch_high, ch_low]))
+        ch_index = random.choice(ch_high)
         new_gene.append(conv_list[self.conv_num].weight.data.clone().cpu().detach().numpy()[ch_index, :, :, :])
         new_gene.append(None)
         self.family.append(new_gene)
