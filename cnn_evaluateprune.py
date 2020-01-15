@@ -27,7 +27,7 @@ class CnnEvaluatePrune:
 
     def train(self, gene, g_count, conv_num):
         # 枝刈り後パラメータ利用
-        self.network = parameter_use(f'./result/pkl{pkl}/dense_conv_prune_dense{dense_per}per_conv{conv_per}per.pkl')
+        self.network = parameter_use(f'./result2/pkl{pkl}/dense_conv_prune_dense{dense_per}per_conv{conv_per}per.pkl')
 
         # 畳み込み層のリスト
         conv_list = [module for module in self.network.modules() if isinstance(module, nn.Conv2d)]
@@ -95,7 +95,7 @@ class CnnEvaluatePrune:
 
             # 結果の保存
             input_data = [g_count, epoch + 1, avg_train_loss, avg_train_acc, avg_val_loss, avg_val_acc]
-            result_save(f'./result/csv{csv}/add_channels_train_dense{dense_per}per_conv{conv_per}per.csv', data_dict, input_data)
+            result_save(f'./result2/csv{csv}/add_channels_train_dense{dense_per}per_conv{conv_per}per.csv', data_dict, input_data)
 
         return 1000 * eva + similarity
         # return eva

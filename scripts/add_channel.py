@@ -23,7 +23,7 @@ original_net = parameter_use(f'./result/pkl{pkl}/original_train_epoch50.pkl')
 # 枝刈り前畳み込み層のリスト
 original_conv_list = [module for module in original_net.modules() if isinstance(module, nn.Conv2d)]
 # 枝刈り後パラメータ利用
-new_net = parameter_use(f'./result/pkl{pkl}/dense_conv_prune_dense{dense_per}per_conv{conv_per}per.pkl')
+new_net = parameter_use(f'./result2/pkl{pkl}/dense_conv_prune_dense{dense_per}per_conv{conv_per}per.pkl')
 # 枝刈り後畳み込み層・全結合層・係数パラメータのリスト
 conv_list = [module for module in new_net.modules() if isinstance(module, nn.Conv2d)]
 dense_list = [module for module in new_net.modules() if isinstance(module, nn.Linear)]
@@ -41,12 +41,12 @@ add_channel_num = 3
 optimizer = optim.SGD(new_net.parameters(), lr=0.01, momentum=0.9, weight_decay=5e-4)
 
 # 追加前重み分布の描画
-# for i in range(len(conv_list)):
-#     before_weight = [np.sum(conv_list[i].weight.data[k].cpu().detach().numpy()) for k
-#                      in range(len(conv_list[i].weight.data.cpu().numpy()))]
-#     parameter_distribution_vis(f'./figure/dis_vis_dense{dense_per}per_conv{conv_per}per/conv{i + 1}'
-#                                f'/before_weight_distribution{i + 1}.png',
-#                                before_weight)
+for i in range(len(conv_list)):
+    before_weight = [np.sum(conv_list[i].weight.data[k].cpu().detach().numpy()) for k
+                     in range(len(conv_list[i].weight.data.cpu().numpy()))]
+    parameter_distribution_vis(f'./figure2/dis_vis_dense{dense_per}per_conv{conv_per}per/conv{i + 1}'
+                               f'/before_weight_distribution{i + 1}.png',
+                               before_weight)
 
 for count in range(add_channel_num):
     ev = [CnnEvaluatePrune(count) for _ in range(len(conv_list))]
@@ -76,11 +76,11 @@ for count in range(add_channel_num):
                     break
 
             # 追加後重み分布の描画
-            # after_weight = [np.sum(conv_list[i].weight.data[k].cpu().numpy()) for k
-            #                 in range(len(conv_list[i].weight.data.cpu().numpy()))]
-            # parameter_distribution_vis(
-            #     f'./figure/dis_vis_dense{dense_per}per_conv{conv_per}per/conv{i + 1}/after{count + 1}_'
-            #     f'weight_distribution{i + 1}.png', after_weight)
+            after_weight = [np.sum(conv_list[i].weight.data[k].cpu().numpy()) for k
+                            in range(len(conv_list[i].weight.data.cpu().numpy()))]
+            parameter_distribution_vis(
+                f'./figure2/dis_vis_dense{dense_per}per_conv{conv_per}per/conv{i + 1}/after{count + 1}_'
+                f'weight_distribution{i + 1}.png', after_weight)
 
             # 追加後チャネル可視化
             # for j in range(conv_list[i].out_channels):
@@ -88,7 +88,7 @@ for count in range(add_channel_num):
             #              , conv_list[i].weight.data.cpu().numpy(), j)
 
         # パラメータの保存
-        parameter_save(f'./result/pkl{pkl}/dense_conv_prune_dense{dense_per}per_conv{conv_per}per.pkl', new_net)
+        parameter_save(f'./result2/pkl{pkl}/dense_conv_prune_dense{dense_per}per_conv{conv_per}per.pkl', new_net)
 
     for param in new_net.parameters():
         param.requires_grad = False
@@ -156,7 +156,7 @@ for count in range(add_channel_num):
 
         # 結果の保存
         input_data = [before_avg_val_loss, before_avg_val_acc, avg_val_loss, avg_val_acc]
-        result_save(f'./result/csv{csv}/result_add_channels_retrain_dense{dense_per}per_conv{conv_per}per.csv'
+        result_save(f'./result2/csv{csv}/result_add_channels_retrain_dense{dense_per}per_conv{conv_per}per.csv'
                     , data_dict, input_data)
         # パラメータの保存
-        parameter_save(f'./result/pkl{pkl}/dense_conv_prune_dense{dense_per}per_conv{conv_per}per.pkl', new_net)
+        parameter_save(f'./result2/pkl{pkl}/dense_conv_prune_dense{dense_per}per_conv{conv_per}per.pkl', new_net)
