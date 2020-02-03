@@ -66,16 +66,6 @@ for count in range(add_channel_num):
                 print(f'gen{i + 1}:{ga[i].generation_num} best-value{i + 1}:{best[i][1]}\n')
 
         with torch.no_grad():
-            # 層ごとに１チャネルごと追加
-            # for j in range(len(conv_list[i].weight.data.cpu().numpy())):
-            #     if i == 0 and np.sum(np.abs(ch_mask[i].mask[j])) < 1 or \
-            #             i == 1 and np.sum(np.abs(ch_mask[i].mask[j])) < 25 * (count + 1) + 1:
-            #         ch_mask[i].mask[j] = 1
-            #         conv_list[i].weight.data[j] = torch.tensor(best[i][0], device=device, dtype=dtype)
-            #         if i != len(conv_list) - 1:
-            #             ch_mask[i + 1].mask[j, :] = 1
-            #             conv_list[i + 1].weight.data[:, j] = original_conv_list[i + 1].weight.data[:, j].clone()
-            #         break
             if i == len(conv_list) - 1:
                 best_fil = best[i][0].reshape(conv_list[i].weight.data[0, :, :, :].cpu().numpy().shape)
                 for j in range(len(conv_list[i].weight.data.cpu().numpy())):
@@ -147,9 +137,6 @@ for count in range(add_channel_num):
             train_acc += (outputs.max(1)[1] == labels).sum().item()
             loss.backward()
             optimizer.step()
-            # for param in param_list:
-            #     param_max, param_min = torch.max(param), torch.min(param)
-            #     param = 2 * (param - param_min) / (param_max - param_min)
             with torch.no_grad():
                 # for j, conv in enumerate(conv_list):
                 #     if ch_mask[j].mask is None:

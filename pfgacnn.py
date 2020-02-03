@@ -43,10 +43,6 @@ class PfgaCnn:
             ker_vec = ker.flatten()
             fil_ker = np.hstack((fil_vec, ker_vec))
             new_gene.append(fil_ker)
-        # fil_div = fil_kernel[:len(fil_vec)]
-        # ker_div = fil_kernel[len(fil_vec):]
-        # fil_ori = fil_div.reshape(fil.shape)
-        # ker_ori = ker_div.reshape(kernel.shape)
         new_gene.append(None)
         self.family.append(new_gene)
 
@@ -79,12 +75,8 @@ class PfgaCnn:
         # for i in range(len(c1[0])):
         # ch_cross_point1, ch_cross_point2 = random.choice(ch_seed), random.choice(ch_seed)
         # print(ch_cross_point1, ch_cross_point2)
-        # print(c1[0])
-        # print(c2[0])
         # if np.random.rand() < 0.5:
         #     c1[0][ch_cross_point1], c2[0][ch_cross_point2] = copy.deepcopy(c2[0][ch_cross_point2]), copy.deepcopy(c1[0][ch_cross_point1])
-        # print(c1[0])
-        # print(c2[0])
         # 二点交叉(チャネルの一部を交換)
         # for i in range(len(c1[0])):
         #     ch_cross_point1, ch_cross_point2 = random.choice(ch_seed), random.choice(ch_seed)
