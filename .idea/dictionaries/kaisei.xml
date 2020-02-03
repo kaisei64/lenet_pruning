@@ -9,8 +9,10 @@
       <w>dataset</w>
       <w>dtype</w>
       <w>finetune</w>
+      <w>genelist</w>
       <w>mydraw</w>
       <w>pfga</w>
+      <w>pfgarule</w>
     </words>
   </dictionary>
 </component>

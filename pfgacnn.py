@@ -9,6 +9,10 @@ from result_save_visualization import *
 net = parameter_use('./result/pkl1/original_train_epoch50.pkl')
 # 畳み込み層のリスト
 conv_list = [module for module in net.modules() if isinstance(module, nn.Conv2d)]
+data_dict = {'rule_num': []}
+dense_per = 99
+conv_per = 60
+csv = 1
 
 
 class PfgaCnn:
@@ -24,18 +28,25 @@ class PfgaCnn:
 
     def add_new_population(self):
         new_gene = []
-        # -1から+1の範囲に正規化した初期個体をランダムに決定
-        # a = np.random.rand(self.gene_len1, self.gene_len2[0], self.gene_len2[1])
-        # a_max = np.max(a)
-        # a_min = np.min(a)
-        # y = 2 * (a - a_min) / (a_max - a_min) - 1
-        # new_gene.append(y)
         # チャネル重要度が上位10%の個体を初期個体にする
-        ch_high, ch_low = channel_importance(self.conv_num)
+        # ch_high, ch_low = channel_importance(self.conv_num)
         # 選択されるチャネルのindex
         # ch_index = random.choice(np.concatenate([ch_high, ch_low]))
-        ch_index = random.choice(ch_high)
-        new_gene.append(conv_list[self.conv_num].weight.data.clone().cpu().detach().numpy()[ch_index, :, :, :])
+        # ch_index = random.choice(ch_high)
+        # new_gene.append(conv_list[self.conv_num].weight.data.clone().cpu().detach().numpy()[ch_index, :, :, :])
+        fil = nn.init.kaiming_uniform_(conv_list[self.conv_num].weight.data.clone()[0, :, :, :]).cpu().detach().numpy()
+        fil_vec = fil.flatten()
+        if self.conv_num == len(conv_list) - 1:
+            new_gene.append(fil_vec)
+        else:
+            ker = nn.init.kaiming_uniform_(conv_list[self.conv_num+1].weight.data.clone()[:, 0, :, :]).cpu().detach().numpy()
+            ker_vec = ker.flatten()
+            fil_ker = np.hstack((fil_vec, ker_vec))
+            new_gene.append(fil_ker)
+        # fil_div = fil_kernel[:len(fil_vec)]
+        # ker_div = fil_kernel[len(fil_vec):]
+        # fil_ori = fil_div.reshape(fil.shape)
+        # ker_ori = ker_div.reshape(kernel.shape)
         new_gene.append(None)
         self.family.append(new_gene)
 
@@ -62,13 +73,18 @@ class PfgaCnn:
     def crossover(self, p1, p2):
         c1 = self.copy_gene(p1)
         c2 = self.copy_gene(p2)
-        ch_seed = [i for i in range(len(c1[0]))]
-        val_seed = [i for i in range(len(c1[0][0]))]
+        # ch_seed = [i for i in range(len(c1[0]))]
+        # val_seed = [i for i in range(len(c1[0][0]))]
         # 一点交叉(チャネルごと交換)
-        for i in range(len(c1[0])):
-            ch_cross_point1, ch_cross_point2 = random.choice(ch_seed), random.choice(ch_seed)
-            if np.random.rand() < 0.5:
-                c1[0][ch_cross_point1], c2[0][ch_cross_point2] = c2[0][ch_cross_point2], c1[0][ch_cross_point1]
+        # for i in range(len(c1[0])):
+        # ch_cross_point1, ch_cross_point2 = random.choice(ch_seed), random.choice(ch_seed)
+        # print(ch_cross_point1, ch_cross_point2)
+        # print(c1[0])
+        # print(c2[0])
+        # if np.random.rand() < 0.5:
+        #     c1[0][ch_cross_point1], c2[0][ch_cross_point2] = copy.deepcopy(c2[0][ch_cross_point2]), copy.deepcopy(c1[0][ch_cross_point1])
+        # print(c1[0])
+        # print(c2[0])
         # 二点交叉(チャネルの一部を交換)
         # for i in range(len(c1[0])):
         #     ch_cross_point1, ch_cross_point2 = random.choice(ch_seed), random.choice(ch_seed)
@@ -79,26 +95,27 @@ class PfgaCnn:
         #         c1[0][ch_cross_point1][val_cross_point1:val_cross_point2], c2[0][ch_cross_point2][val_cross_point1:val_cross_point2]\
         #             = c2[0][ch_cross_point2][val_cross_point1:val_cross_point2], c1[0][ch_cross_point1][val_cross_point1:val_cross_point2]
         # 一様交叉
+        for i in range(len(c1[0])):
+            if np.random.rand() < 0.5:
+                c1[0][i], c2[0][i] = c2[0][i], c1[0][i]
         # for i in range(len(c1[0])):
-        #     uniform_mask1 = np.ones(c1[0][i].shape)
-        #     uniform_mask1[:int(len(c1[0][i][0]) / 2), :int(len(c1[0][i][0]) / 2)] = 0
-        #     np.random.shuffle(uniform_mask1)
-        #     np.random.shuffle(uniform_mask1.T)
-        #     uniform_mask2 = np.where(uniform_mask1 == 0, 1, 0)
-        #     if np.random.rand() < 0.5:
-        #         c1[0][i], c2[0][i] = c1[0][i] * uniform_mask1 + c2[0][i] * uniform_mask2, c1[0][i] * uniform_mask2 + c2[0][i] * uniform_mask1
+        #     for j in range(len(c1[0][i])):
+        #         for k in range(len(c1[0][i][j])):
+        #             if np.random.rand() < 0.5:
+        #                 c1[0][i][j][k], c2[0][i][j][k] = c2[0][i][j][k], c1[0][i][j][k]
         c1[1], c2[1] = None, None
         return c1, c2
 
     def mutate(self, g):
         # 摂動
-        if np.random.rand() < self.mutate_rate:
-            for i in range(len(g[0])):
-                g[0][i] *= 1.05
-        # 反転
         # if np.random.rand() < self.mutate_rate:
         #     for i in range(len(g[0])):
-        #         g[0][i] = -g[0][i]
+        #         g[0][i] *= 1.05
+                # g[0][i] *= 0.95
+        # 反転
+        for i in range(len(g[0])):
+            if np.random.rand() < 0.5:
+                g[0][i] = -g[0][i]
         # 逆位
         # if np.random.rand() < self.mutate_rate:
         #     for i in range(len(g[0])):
@@ -140,41 +157,64 @@ class PfgaCnn:
             i[1] = self.evaluate_func(i[0], count, self.conv_num)
             count += 1
 
+        if not self.better_high:
+            c1[1] *= -1
+            c2[1] *= -1
+            p1[1] *= -1
+            p2[1] *= -1
+
         # rule-1:both child is better than both parent, remain both child and better 1 parent
-        if (self.better_high is True and min(c1[1], c2[1]) > max(p1[1], p2[1])) or (
-                self.better_high is False and max(c1[1], c2[1]) < min(p1[1], p2[1])):
+        if min(c1[1], c2[1]) >= max(p1[1], p2[1]):
+            # rule_num = [1]
+            # ルール番号の保存
+            # result_save(f'./result3/csv{csv}/pfgarule/pfga.csv', data_dict, rule_num)
             self.family.append(c1)
             self.family.append(c2)
-            if (self.better_high is True and p1[1] > p2[1]) or (self.better_high is False and p1[1] < p2[1]):
+            if p1[1] > p2[1]:
                 self.family.append(p1)
             else:
                 self.family.append(p2)
 
         # rule-2:both parent is better than both child, remain better 1 parent
-        elif (self.better_high is True and max(c1[1], c2[1]) < min(p1[1], p2[1])) or (
-                self.better_high is False and min(c1[1], c2[1]) > max(p1[1], p2[1])):
-            if (self.better_high is True and p1[1] > p2[1]) or (self.better_high is False and p1[1] < p2[1]):
+        elif max(c1[1], c2[1]) <= min(p1[1], p2[1]):
+            # rule_num = [2]
+            # ルール番号の保存
+            # result_save(f'./result3/csv{csv}/pfgarule/pfga.csv', data_dict, rule_num)
+            if p1[1] > p2[1]:
                 self.family.append(p1)
             else:
                 self.family.append(p2)
 
         # rule-3:better 1 parent is better than both child, remain better 1 parent and better 1 child
-        elif (self.better_high is True and max(c1[1], c2[1]) < max(p1[1], p2[1])) or (
-                self.better_high is False and min(c1[1], c2[1]) > min(p1[1], p2[1])):
-            if (self.better_high is True and p1[1] > p2[1]) or (self.better_high is False and p1[1] < p2[1]):
+        elif max(c1[1], c2[1]) <= max(p1[1], p2[1]):
+            # rule_num = [3]
+            # ルール番号の保存
+            # result_save(f'./result3/csv{csv}/pfgarule/pfga.csv', data_dict, rule_num)
+            if p1[1] > p2[1]:
                 self.family.append(p1)
             else:
                 self.family.append(p2)
 
-            if (self.better_high is True and c1[1] > c2[1]) or (self.better_high is False and c1[1] < c2[1]):
+            if c1[1] > c2[1]:
                 self.family.append(c1)
             else:
                 self.family.append(c2)
 
         # rule-4:better 1 child is better than both parent, remain better 1 child and append 1 new gene
-        else:
-            if (self.better_high is True and c1[1] > c2[1]) or (self.better_high is False and c1[1] < c2[1]):
+        elif max(c1[1], c2[1]) >= max(p1[1], p2[1]):
+            # rule_num = [4]
+            # ルール番号の保存
+            # result_save(f'./result3/csv{csv}/pfgarule/pfga.csv', data_dict, rule_num)
+            if c1[1] > c2[1]:
                 self.family.append(c1)
             else:
                 self.family.append(c2)
             self.add_new_population()
+        else:
+            assert False
+
+        if not self.better_high:
+            c1[1] *= -1
+            c2[1] *= -1
+            p1[1] *= -1
+            p2[1] *= -1

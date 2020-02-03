@@ -1,10 +1,14 @@
 <component name="ProjectDictionaryState">
   <dictionary name="kaisei">
     <words>
+      <w>coef</w>
       <w>conv</w>
       <w>finetune</w>
+      <w>genelist</w>
       <w>mymodel</w>
       <w>optim</w>
+      <w>pfga</w>
+      <w>pfgarule</w>
     </words>
   </dictionary>
 </component>

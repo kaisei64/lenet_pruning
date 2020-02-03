@@ -6,10 +6,11 @@ import torch
 import numpy as np
 
 data_dict = {'attribute': [], 'epoch': [], 'train_loss': [], 'train_acc': [], 'val_loss': [], 'val_acc': []}
-dense_per = 90
-conv_per = 80
+dense_per = 0
+conv_per = 60
 csv = 1
 pkl = 1
+coef = 2500
 
 # 枝刈り前パラメータ利用
 original_net = parameter_use(f'./result/pkl{pkl}/original_train_epoch50.pkl')
@@ -27,7 +28,7 @@ class CnnEvaluatePrune:
 
     def train(self, gene, g_count, conv_num):
         # 枝刈り後パラメータ利用
-        self.network = parameter_use(f'./result2/pkl{pkl}/dense_conv_prune_dense{dense_per}per_conv{conv_per}per.pkl')
+        self.network = parameter_use(f'./result3/pkl{pkl}_/dense_conv_prune_dense{dense_per}per_conv{conv_per}per.pkl')
 
         # 畳み込み層のリスト
         conv_list = [module for module in self.network.modules() if isinstance(module, nn.Conv2d)]
@@ -41,15 +42,28 @@ class CnnEvaluatePrune:
 
         # 追加
         with torch.no_grad():
-            for j in range(len(conv_list[conv_num].weight.data.cpu().numpy())):
-                if np.sum(np.abs(ch_mask[conv_num].mask[j])) < 25 * (self.count + 1) + 1:
-                    ch_mask[conv_num].mask[j] = 1
-                    conv_list[conv_num].weight.data[j] = torch.tensor(gene, device=device, dtype=dtype)
-                    if conv_num != len(conv_list) - 1:
+            if conv_num == len(conv_list) - 1:
+                gene_fil = gene.reshape(conv_list[conv_num].weight.data[0, :, :, :].cpu().numpy().shape)
+                for j in range(len(conv_list[conv_num].weight.data.cpu().numpy())):
+                    if np.sum(np.abs(ch_mask[conv_num].mask[j])) < 25 * (self.count + 1) + 1:
+                        ch_mask[conv_num].mask[j] = 1
+                        conv_list[conv_num].weight.data[j] = torch.tensor(gene_fil, device=device, dtype=dtype)
+                        print(f'add_filter_conv{conv_num + 1}')
+                        break
+            else:
+                gene_fil_vec = gene[:len(conv_list[conv_num].weight.data[0, :, :, :].cpu().numpy().flatten())]
+                gene_ker_vec = gene[len(conv_list[conv_num].weight.data[0, :, :, :].cpu().numpy().flatten()):]
+                gene_fil = gene_fil_vec.reshape(conv_list[conv_num].weight.data[0, :, :, :].cpu().numpy().shape)
+                gene_ker = gene_ker_vec.reshape(conv_list[conv_num+1].weight.data[:, 0, :, :].cpu().numpy().shape)
+                for j in range(len(conv_list[conv_num].weight.data.cpu().numpy())):
+                    if (conv_num == 0 and np.sum(np.abs(ch_mask[conv_num].mask[j])) < 1) \
+                            or (conv_num > 0 and np.sum(np.abs(ch_mask[conv_num].mask[j])) < 25 * (self.count + 1) + 1):
+                        ch_mask[conv_num].mask[j] = 1
+                        conv_list[conv_num].weight.data[j] = torch.tensor(gene_fil, device=device, dtype=dtype)
                         ch_mask[conv_num + 1].mask[j, :] = 1
-                        conv_list[conv_num + 1].weight.data[:, j] = original_conv_list[conv_num + 1].weight.data[:, j].clone()
-                    print(f'add_filter_conv{conv_num + 1}')
-                    break
+                        conv_list[conv_num + 1].weight.data[:, j] = torch.tensor(gene_ker, device=device, dtype=dtype)
+                        print(f'add_filter_conv{conv_num + 1}')
+                        break
 
         # パラメータの割合
         weight_ratio = [np.count_nonzero(conv.weight.cpu().detach().numpy()) /
@@ -68,14 +82,18 @@ class CnnEvaluatePrune:
         similarity = 0
         # チャネル間の類似度
         for i in range(conv_list[conv_num].out_channels):
-            similarity += channel_euclidean_distance(gene, conv_list[conv_num].weight.data.cpu().detach().numpy()[i])
+            if conv_num == len(conv_list) - 1:
+                gene_fil = gene.reshape(conv_list[conv_num].weight.data[0, :, :, :].cpu().numpy().shape)
+            else:
+                gene_fil_vec = gene[:len(conv_list[conv_num].weight.data[0, :, :, :].cpu().numpy().flatten())]
+                gene_fil = gene_fil_vec.reshape(conv_list[conv_num].weight.data[0, :, :, :].cpu().numpy().shape)
+            similarity += channel_euclidean_distance(gene_fil, conv_list[conv_num].weight.data.cpu().detach().numpy()[i])
             # similarity += cos_sim(gene, conv_list[conv_num].weight.data.cpu().detach().numpy()[i])
 
         f_num_epochs = 1
         eva = 0
         avg_train_loss, avg_train_acc = 0, 0
 
-        # finetune
         for epoch in range(f_num_epochs):
             # val
             self.network.eval()
@@ -92,10 +110,11 @@ class CnnEvaluatePrune:
 
             print(f'epoch [{epoch + 1}/{f_num_epochs}], train_loss: {avg_train_loss:.4f}'
                   f', train_acc: {avg_train_acc:.4f}, val_loss: {avg_val_loss:.4f}, val_acc: {avg_val_acc:.4f}')
+            exit()
 
             # 結果の保存
             input_data = [g_count, epoch + 1, avg_train_loss, avg_train_acc, avg_val_loss, avg_val_acc]
-            result_save(f'./result2/csv{csv}/add_channels_train_dense{dense_per}per_conv{conv_per}per.csv', data_dict, input_data)
+            result_save(f'./result3/csv{csv}/add_channels_train_dense{dense_per}per_conv{conv_per}per.csv', data_dict, input_data)
 
-        return 1000 * eva + similarity
+        return coef * eva + similarity
         # return eva

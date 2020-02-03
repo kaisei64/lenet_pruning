@@ -17,7 +17,7 @@ original_net = parameter_use('./result/pkl1/original_train_epoch50.pkl')
 # 枝刈り前畳み込み層のリスト
 original_conv_list = [module for module in original_net.modules() if isinstance(module, nn.Conv2d)]
 # 枝刈り後パラメータ利用
-new_net = parameter_use('./result2/pkl1/dense_conv_prune_dense95per_conv95per.pkl')
+new_net = parameter_use('./result3/pkl1/dense_conv_prune_dense90per_conv94per.pkl')
 # 枝刈り後畳み込み層・全結合層・係数パラメータのリスト
 conv_list = [module for module in new_net.modules() if isinstance(module, nn.Conv2d)]
 dense_list = [module for module in new_net.modules() if isinstance(module, nn.Linear)]
