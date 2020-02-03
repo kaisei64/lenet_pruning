@@ -37,7 +37,7 @@ de_mask = [DenseMaskGenerator() for _ in range(len(dense_list))]
 for i, dense in enumerate(dense_list):
     de_mask[i].mask = np.where(np.abs(dense.weight.data.clone().cpu().detach().numpy()) == 0, 0, 1)
 
-gen_num = 30
+gen_num = 300
 add_channel_num = 3
 optimizer = optim.SGD(new_net.parameters(), lr=0.01, momentum=0.9, weight_decay=5e-4)
 
@@ -106,8 +106,6 @@ for count in range(add_channel_num):
         param.requires_grad = False
     for dense in dense_list:
         dense.weight.requires_grad = True
-    # for param in param_list:
-    #     param.requires_grad = True
     f_num_epochs = 10
     before_avg_val_loss, before_avg_val_acc = 0, 0
     # finetune
